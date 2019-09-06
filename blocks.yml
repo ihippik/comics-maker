@@ -1,0 +1,21 @@
+config:
+  size: 15
+  spacing: 1.5
+  blocks:
+    - x: 100
+      y: 45
+      size: 40
+      strings:
+        - "開発が始まります"
+    - x: 50
+      y: 260
+      size: 15
+      spacing: 1.5
+      strings:
+        - "どうすればいいですか？"
+        - "私は思うだろう.."
+        - "これを試してみます"
+    - x: 440
+      y: 290
+      strings:
+        - "何も起こりません（（"
