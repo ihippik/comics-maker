@@ -10,24 +10,20 @@ Example
 Config
 ```yaml
 config:
+  debug: true #draw a rectangle outline
   size: 15 # common font size
-  spacing: 1.5  # common font line spacing
+  spacing: 2.5 # common font spacing
   blocks:
-    - x: 100  # horizontal coordinate of the text block
-      y: 45 # horizontal coordinate of the text block
-      size: 40 # block font size
-      strings:
-        - "開発が始まります"  # array of strings for a text block
-    - x: 50
-      y: 260
-      size: 15
-      spacing: 1.5
-      strings:
-        - "どうすればいいですか？"
-        - "私は思うだろう.."
-        - "これを試してみます"
-    - x: 440
-      y: 290
-      strings:
-        - "何も起こりません（（"
+    - x1: 80 #rectangle coordinates
+      y1: 55
+      x2: 470
+      y2: 90
+      size: 40 #font size
+      text: "開発が始まります.." # words that do not fit in the rectangle are wrapped in a new line
+    - x1: 50
+      y1: 255
+      x2: 200
+      y2: 355
+      size: 14
+      text: "難しいです どうすれば いいですか？ とても難しい うまくいかないと思う とにかくやってみます"
 ```

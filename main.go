@@ -1,28 +1,13 @@
 package main
 
 import (
-	"bufio"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/png"
-	"io/ioutil"
 	"log"
 	"os"
 
+	"github.com/fogleman/gg"
 	"github.com/sirupsen/logrus"
 
-	"github.com/golang/freetype"
-	"github.com/golang/freetype/truetype"
 	"github.com/urfave/cli"
-)
-
-var (
-	dpi        = float64(72)
-	ctx        = new(freetype.Context)
-	utf8Font   = new(truetype.Font)
-	black      = color.RGBA{0, 0, 0, 255}
-	background *image.RGBA
 )
 
 func main() {
@@ -37,7 +22,7 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.StringFlag{
 			Name:        "font, f",
-			Value:       "wqy-zenhei.ttf",
+			Value:       "font.ttf",
 			Usage:       "font file name",
 			Destination: &fontFile,
 		},
@@ -83,92 +68,49 @@ func makeImg(fileCfg, fontFile, imgFile, resultFile string) error {
 	if err != nil {
 		logrus.Fatalln(err)
 	}
-
 	if err = cfg.Validate(); err != nil {
 		logrus.Fatalln(err)
 	}
 
-	fontBytes, err := ioutil.ReadFile(fontFile)
+	template, err := gg.LoadPNG(imgFile)
 	if err != nil {
-		return err
+		logrus.Fatalln(err)
 	}
+	dc := gg.NewContextForImage(template)
 
-	utf8Font, err = freetype.ParseFont(fontBytes)
-	if err != nil {
-		return err
-	}
-
-	fontForeGroundColor := image.NewUniform(black)
-
-	reader, err := os.Open(imgFile)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	tmpl, _, err := image.DecodeConfig(reader)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-	_, err = reader.Seek(0, 0)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-
-	background = image.NewRGBA(image.Rect(0, 0, tmpl.Width, tmpl.Height))
-
-	templateImg, err := png.Decode(reader)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-	defer reader.Close()
-
-	draw.Draw(background, background.Bounds(), templateImg, image.ZP, draw.Src)
-
-	ctx = freetype.NewContext()
-	ctx.SetDPI(dpi)
-	ctx.SetFont(utf8Font)
-	ctx.SetClip(background.Bounds())
-	ctx.SetDst(background)
-	ctx.SetSrc(fontForeGroundColor)
-
-	for i, block := range cfg.Config.Blocks {
-		pt := freetype.Pt(block.X, block.Y+int(ctx.PointToFixed(block.Size)>>6))
-		for _, str := range block.Strings {
-			err = block.Validate(tmpl.Width, tmpl.Height)
-			if err != nil {
-				logrus.WithField("num_block", i).Warningln(err.Error())
-				continue
-			}
-
-			ctx.SetFontSize(block.Size)
-			_, err := ctx.DrawString(str, pt)
-			if err != nil {
-				logrus.Fatalln(err)
-			}
-			pt.Y += ctx.PointToFixed(block.Size * block.Spacing)
+	for _, block := range cfg.Config.Blocks {
+		dcImg := drawText(&block, fontFile)
+		if cfg.Config.Debug {
+			DebugLine(dcImg, 0, 0, block.X2-block.X1, block.Y2-block.Y1)
 		}
+		img := dcImg.Image()
+		dc.DrawImage(img, int(block.X1), int(block.Y1))
 	}
-
-	outFile, err := os.Create(resultFile)
-	if err != nil {
-		logrus.Fatalln(err)
-	}
-	defer outFile.Close()
-	buff := bufio.NewWriter(outFile)
-
-	err = png.Encode(buff, background)
-	if err != nil {
-		logrus.Fatalln(err)
-	}
-
-	err = buff.Flush()
+	err = dc.SavePNG(resultFile)
 	if err != nil {
 		logrus.Fatalln(err)
 	}
 	logrus.Infoln("save to", resultFile)
 	return nil
+}
+
+func drawText(b *Block, fontFile string) *gg.Context {
+	dc := gg.NewContext(int(b.X2-b.X1), int(b.Y2-b.Y1))
+	if err := dc.LoadFontFace(fontFile, b.Size); err != nil {
+		panic(err)
+	}
+	dc.SetRGB(0, 0, 0)
+	dc.DrawStringWrapped(b.Text, 0, 0, 0, 0, b.X2-b.X1, b.Spacing, gg.AlignLeft)
+
+	return dc
+}
+
+func DebugLine(dc *gg.Context, x1, y1, x2, y2 float64) {
+	dc.DrawLine(x1, y1, x2, y1)
+	dc.DrawLine(x1, y1, x1, y2)
+	dc.DrawLine(x1, y2, x2, y2)
+	dc.DrawLine(x2, y1, x2, y2)
+	dc.SetRGB(50, 255, 255)
+	dc.SetLineWidth(1)
+	dc.Stroke()
 }

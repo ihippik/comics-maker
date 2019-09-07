@@ -10,6 +10,7 @@ import (
 type (
 	ConfigApp struct {
 		Config struct {
+			Debug   bool
 			Size    float64
 			Spacing float64
 			Blocks  []Block `yaml:"blocks"`
@@ -19,9 +20,11 @@ type (
 	Block struct {
 		Size    float64
 		Spacing float64
-		X       int
-		Y       int
-		Strings []string
+		X1      float64
+		Y1      float64
+		X2      float64
+		Y2      float64
+		Text    string
 	}
 )
 
@@ -35,13 +38,6 @@ func initConfig(file string) (ConfigApp, error) {
 		return AppConfig, err
 	}
 	return AppConfig, nil
-}
-
-func (b *Block) Validate(width, height int) error {
-	if b.X > width || b.Y > height {
-		return errors.New("invalid coordinates")
-	}
-	return nil
 }
 
 func (c *ConfigApp) Validate() error {
