@@ -1,18 +1,20 @@
 package main
 
 import (
+	"image"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/fogleman/gg"
 	"github.com/sirupsen/logrus"
-
 	"github.com/urfave/cli"
 )
 
 func main() {
-
 	var cfgFile, fontFile, imgFile, resultFile string
+
 	app := cli.NewApp()
 	app.Name = "сomics maker"
 	app.Usage = "overlay text on images"
@@ -72,16 +74,30 @@ func makeImg(fileCfg, fontFile, imgFile, resultFile string) error {
 		logrus.Fatalln(err)
 	}
 
-	template, err := gg.LoadPNG(imgFile)
-	if err != nil {
-		logrus.Fatalln(err)
+	var img image.Image
+	if isValidUrl(imgFile) {
+		response, err := http.Get(imgFile)
+		if err != nil {
+			logrus.WithError(err).WithField("url", imgFile).Fatalln("can`t load img")
+		}
+		defer response.Body.Close()
+
+		img, _, err = image.Decode(response.Body)
+		if err != nil {
+			logrus.WithError(err).Fatalln("can`t decode img")
+		}
+	} else {
+		img, err = gg.LoadPNG(imgFile)
+		if err != nil {
+			logrus.WithError(err).Fatalln("can`t open img")
+		}
 	}
-	dc := gg.NewContextForImage(template)
+	dc := gg.NewContextForImage(img)
 
 	for _, block := range cfg.Config.Blocks {
 		dcImg := drawText(&block, fontFile)
 		if cfg.Config.Debug {
-			DebugLine(dcImg, 0, 0, block.X2-block.X1, block.Y2-block.Y1)
+			drawDebugRect(dcImg, 0, 0, block.X2-block.X1, block.Y2-block.Y1)
 		}
 		img := dcImg.Image()
 		dc.DrawImage(img, int(block.X1), int(block.Y1))
@@ -97,15 +113,14 @@ func makeImg(fileCfg, fontFile, imgFile, resultFile string) error {
 func drawText(b *Block, fontFile string) *gg.Context {
 	dc := gg.NewContext(int(b.X2-b.X1), int(b.Y2-b.Y1))
 	if err := dc.LoadFontFace(fontFile, b.Size); err != nil {
-		panic(err)
+		logrus.WithError(err).Fatalln("can`t load font")
 	}
 	dc.SetRGB(0, 0, 0)
 	dc.DrawStringWrapped(b.Text, 0, 0, 0, 0, b.X2-b.X1, b.Spacing, gg.AlignLeft)
-
 	return dc
 }
 
-func DebugLine(dc *gg.Context, x1, y1, x2, y2 float64) {
+func drawDebugRect(dc *gg.Context, x1, y1, x2, y2 float64) {
 	dc.DrawLine(x1, y1, x2, y1)
 	dc.DrawLine(x1, y1, x1, y2)
 	dc.DrawLine(x1, y2, x2, y2)
@@ -113,4 +128,13 @@ func DebugLine(dc *gg.Context, x1, y1, x2, y2 float64) {
 	dc.SetRGB(50, 255, 255)
 	dc.SetLineWidth(1)
 	dc.Stroke()
+}
+
+func isValidUrl(txt string) bool {
+	_, err := url.ParseRequestURI(txt)
+	if err != nil {
+		return false
+	} else {
+		return true
+	}
 }
