@@ -38,6 +38,16 @@ const (
 	alignRight  = "right"
 )
 
+// text errors.
+var (
+	spacingNotSetErr           = errors.New("spacing must be set")
+	fontSizeNotSetErr          = errors.New("font size must be set")
+	textAlignNotSetErr         = errors.New("text align must be set")
+	invalidTextAlignErr        = errors.New("invalid text align")
+	invalidHorizontalCoordsErr = errors.New("invalid horizontal block coordinates")
+	invalidVerticalCoordsErr   = errors.New("invalid vertical block coordinates")
+)
+
 var alignMap = map[string]gg.Align{alignLeft: gg.AlignLeft, alignCenter: gg.AlignCenter, alignRight: gg.AlignRight}
 
 func initConfig(file string) (ConfigApp, error) {
@@ -55,17 +65,29 @@ func initConfig(file string) (ConfigApp, error) {
 // Validate config file.
 func (c *ConfigApp) Validate() error {
 	if c.Config.Spacing == 0 {
-		return errors.New("spacing must be set")
+		return spacingNotSetErr
 	}
 	if c.Config.Size == 0 {
-		return errors.New("font size must be set")
+		return fontSizeNotSetErr
 	}
 	if len(c.Config.TextAlign) == 0 {
-		return errors.New("text align must be set")
+		return textAlignNotSetErr
 	}
 	_, ok := alignMap[c.Config.TextAlign]
 	if !ok {
-		return errors.New("invalid text align")
+		return invalidTextAlignErr
+	}
+	for _, block := range c.Config.Blocks {
+		if block.X1 >= block.X2 {
+			return invalidHorizontalCoordsErr
+		}
+		if block.Y1 >= block.Y2 {
+			return invalidVerticalCoordsErr
+		}
+		_, ok := alignMap[block.TextAlign]
+		if !ok && len(block.TextAlign) > 0 {
+			return invalidTextAlignErr
+		}
 	}
 	return nil
 }
