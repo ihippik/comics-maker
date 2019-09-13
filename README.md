@@ -1,6 +1,14 @@
 # Comics maker
 
-Overlay text on a template image
+### Script overlay text blocks on the template.
+
+We superimpose text blocks on the template image downloaded from the link or downloaded from the local file (depending on the parameter passed).
+
+If the text does not fit in width, then it is wrapped to the next line. If there is not enough vertical space, then the text outside the block is no longer displayed.
+
+In the configuration, you can specify general values that will be applied to all text blocks if they are not overridden in them.
+
+Debug mode displays red rectangles around each text block.
 
 Example
 ```bash

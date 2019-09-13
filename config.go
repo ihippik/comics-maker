@@ -2,23 +2,24 @@ package main
 
 import (
 	"errors"
-	"github.com/fogleman/gg"
 	"io/ioutil"
 
+	"github.com/fogleman/gg"
 	"gopkg.in/yaml.v2"
 )
 
 type (
+	//ConfigApp struct with app configuration.
 	ConfigApp struct {
 		Config struct {
 			Debug     bool
 			Size      float64
 			Spacing   float64
-			TextAlign string  `yaml:"textAlign"`
-			Blocks    []Block `yaml:"blocks"`
+			TextAlign string `yaml:"textAlign"`
+			Blocks    []Block
 		}
 	}
-
+	//Block struct with text block settings.
 	Block struct {
 		Size      float64
 		Spacing   float64
@@ -51,6 +52,7 @@ func initConfig(file string) (ConfigApp, error) {
 	return AppConfig, nil
 }
 
+// Validate config file.
 func (c *ConfigApp) Validate() error {
 	if c.Config.Spacing == 0 {
 		return errors.New("spacing must be set")
@@ -65,6 +67,11 @@ func (c *ConfigApp) Validate() error {
 	if !ok {
 		return errors.New("invalid text align")
 	}
+	return nil
+}
+
+// SetCommonValues set common settings for each block.
+func (c *ConfigApp) SetCommonValues() {
 	for i, block := range c.Config.Blocks {
 		if block.Size == 0 {
 			c.Config.Blocks[i].Size = c.Config.Size
@@ -76,5 +83,4 @@ func (c *ConfigApp) Validate() error {
 			c.Config.Blocks[i].TextAlign = c.Config.TextAlign
 		}
 	}
-	return nil
 }
