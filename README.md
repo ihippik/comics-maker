@@ -1,6 +1,14 @@
 # Comics maker
 
-Overlay text on a template image
+### Script overlay text blocks on the template.
+
+We superimpose text blocks on the template image downloaded from the link or downloaded from the local file (depending on the parameter passed).
+
+If the text does not fit in width, then it is wrapped to the next line. If there is not enough vertical space, then the text outside the block is no longer displayed.
+
+In the configuration, you can specify general values that will be applied to all text blocks if they are not overridden in them.
+
+Debug mode displays red rectangles around each text block.
 
 Example
 ```bash
@@ -10,24 +18,22 @@ Example
 Config
 ```yaml
 config:
+  debug: true #draw a rectangle outline
   size: 15 # common font size
-  spacing: 1.5  # common font line spacing
+  spacing: 2.5 # common font spacing
+  textAlign: "left" # common text align
   blocks:
-    - x: 100  # horizontal coordinate of the text block
-      y: 45 # horizontal coordinate of the text block
-      size: 40 # block font size
-      strings:
-        - "開発が始まります"  # array of strings for a text block
-    - x: 50
-      y: 260
-      size: 15
-      spacing: 1.5
-      strings:
-        - "どうすればいいですか？"
-        - "私は思うだろう.."
-        - "これを試してみます"
-    - x: 440
-      y: 290
-      strings:
-        - "何も起こりません（（"
+    - x1: 80 #rectangle coordinates
+      y1: 55
+      x2: 470
+      y2: 90
+      size: 40 #font size
+      textAlign: "center"
+      text: "開発が始まります.." # words that do not fit in the rectangle are wrapped in a new line
+    - x1: 50
+      y1: 255
+      x2: 200
+      y2: 355
+      size: 14
+      text: "難しいです どうすれば いいですか？ とても難しい うまくいかないと思う とにかくやってみます"
 ```
