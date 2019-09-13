@@ -116,7 +116,8 @@ func drawText(b *Block, fontFile string) *gg.Context {
 		logrus.WithError(err).Fatalln("can`t load font")
 	}
 	dc.SetRGB(0, 0, 0)
-	dc.DrawStringWrapped(b.Text, 0, 0, 0, 0, b.X2-b.X1, b.Spacing, gg.AlignLeft)
+	textAlign := alignMap[b.TextAlign]
+	dc.DrawStringWrapped(b.Text, 0, 0, 0, 0, b.X2-b.X1, b.Spacing, textAlign)
 	return dc
 }
 

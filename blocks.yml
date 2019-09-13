@@ -2,6 +2,7 @@ config:
   debug: true
   size: 15
   spacing: 2.5
+  textAlign: "left"
   blocks:
     - x1: 80
       y1: 55
@@ -14,4 +15,5 @@ config:
       x2: 200
       y2: 355
       size: 14
+      textAlign: "center"
       text: "難しいです どうすれば いいですか？ とても難しい うまくいかないと思う とにかくやってみます"

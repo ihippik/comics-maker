@@ -13,12 +13,14 @@ config:
   debug: true #draw a rectangle outline
   size: 15 # common font size
   spacing: 2.5 # common font spacing
+  textAlign: "left" # common text align
   blocks:
     - x1: 80 #rectangle coordinates
       y1: 55
       x2: 470
       y2: 90
       size: 40 #font size
+      textAlign: "center"
       text: "開発が始まります.." # words that do not fit in the rectangle are wrapped in a new line
     - x1: 50
       y1: 255
